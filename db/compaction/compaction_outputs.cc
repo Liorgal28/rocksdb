@@ -62,14 +62,24 @@ Status CompactionOutputs::Finish(
 IOStatus CompactionOutputs::WriterSyncClose(const Status& input_status,
                                             SystemClock* clock,
                                             Statistics* statistics,
-                                            bool use_fsync) {
+                                            bool use_fsync,
+                                            std::shared_ptr<Logger> info_log,
+                                            EventLogger* event_logger_) {
   IOStatus io_s;
   IOOptions opts;
   io_s = WritableFileWriter::PrepareIOOptions(
       WriteOptions(Env::IOActivity::kCompaction), opts);
   if (input_status.ok() && io_s.ok()) {
     StopWatch sw(clock, statistics, COMPACTION_OUTFILE_SYNC_MICROS);
+    // Start measuring time for Sync
+    const uint64_t start_cpu_micros = clock->CPUMicros();
     io_s = file_writer_->Sync(opts, use_fsync);
+    const uint64_t cpu_micros = clock->CPUMicros() - start_cpu_micros;
+    // Log the time taken for Sync
+    ROCKS_LOG_INFO(info_log, "LIOR Sync took %" PRIu64 " cpu microseconds.",
+                   cpu_micros);
+    auto stream = event_logger_->Log();
+    stream << "Lior Gal " << cpu_micros;
   }
   if (input_status.ok() && io_s.ok()) {
     io_s = file_writer_->Close(opts);

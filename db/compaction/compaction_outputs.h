@@ -15,6 +15,7 @@
 #include "db/compaction/compaction_iterator.h"
 #include "db/internal_stats.h"
 #include "db/output_validator.h"
+#include "logging/logging.h"
 
 namespace ROCKSDB_NAMESPACE {
 
@@ -114,7 +115,9 @@ class CompactionOutputs {
   }
 
   IOStatus WriterSyncClose(const Status& intput_status, SystemClock* clock,
-                           Statistics* statistics, bool use_fsync);
+                           Statistics* statistics, bool use_fsync,
+                           std::shared_ptr<Logger> info_log,
+                           EventLogger* event_logger_);
 
   TableProperties GetTableProperties() {
     return builder_->GetTableProperties();

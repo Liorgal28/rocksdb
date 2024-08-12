@@ -1044,12 +1044,10 @@ void CompactionJob::NotifyOnSubcompactionBegin(
     listener->OnSubcompactionBegin(info);
   }
   info.status.PermitUncheckedError();
-
 }
 
 void CompactionJob::NotifyOnSubcompactionCompleted(
     SubcompactionState* sub_compact) {
-
   if (db_options_.listeners.empty()) {
     return;
   }
@@ -1600,10 +1598,10 @@ Status CompactionJob::FinishCompactionOutputFile(
       }
     }
   }
-
   // Finish and check for file errors
   IOStatus io_s = outputs.WriterSyncClose(s, db_options_.clock, stats_,
-                                          db_options_.use_fsync);
+                                          db_options_.use_fsync,
+                                          db_options_.info_log, event_logger_);
 
   if (s.ok() && io_s.ok()) {
     file_checksum = meta->file_checksum;
@@ -2098,7 +2096,7 @@ void CompactionJob::LogCompaction() {
     // build event logger report
     auto stream = event_logger_->Log();
     stream << "job" << job_id_ << "event"
-           << "compaction_started"
+           << "compaction_started123"
            << "compaction_reason"
            << GetCompactionReasonString(compaction->compaction_reason());
     for (size_t i = 0; i < compaction->num_input_levels(); ++i) {
